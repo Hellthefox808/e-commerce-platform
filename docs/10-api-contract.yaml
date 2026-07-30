@@ -1,0 +1,64 @@
+openapi: 3.0.3
+info:
+  title: LuxeCommerce REST API
+  description: Enterprise Full-Stack E-Commerce API Contract
+  version: 1.0.0
+paths:
+  /api/v1/auth/login:
+    post:
+      summary: User Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string, example: "customer@luxemarket.com" }
+                password: { type: string, example: "customer123" }
+      responses:
+        '200':
+          description: Login successful, returns JWT token & user object
+  /api/v1/products:
+    get:
+      summary: List Products with filtering, search & pagination
+      parameters:
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: category
+          in: query
+          schema: { type: string }
+        - name: minPrice
+          in: query
+          schema: { type: number }
+        - name: maxPrice
+          in: query
+          schema: { type: number }
+      responses:
+        '200':
+          description: Array of products matching query criteria
+  /api/v1/orders/checkout:
+    post:
+      summary: Initiate Order Checkout & Reserve Stock
+      security:
+        - BearerAuth: []
+      responses:
+        '201':
+          description: Order created successfully
+  /api/v1/payments/stripe/create-intent:
+    post:
+      summary: Create Stripe PaymentIntent
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Stripe Client Secret returned
+  /api/v1/admin/analytics:
+    get:
+      summary: Retrieve Admin Sales & Revenue Metrics
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Sales overview and chart data

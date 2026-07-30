@@ -1,0 +1,34 @@
+name: LuxeCommerce CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Backend Dependencies
+        run: cd backend && npm install
+      - name: Seed & Verify Database
+        run: cd backend && npm run seed
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Frontend Dependencies
+        run: cd frontend && npm install
+      - name: Build Frontend Production Artifact
+        run: cd frontend && npm run build
