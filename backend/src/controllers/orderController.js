@@ -12,19 +12,24 @@ exports.createOrder = async (req, res) => {
     const validatedItems = [];
 
     for (const item of items) {
+      const qty = parseInt(item.quantity, 10);
+      if (isNaN(qty) || qty <= 0) {
+        return res.status(400).json({ success: false, error: 'Item quantity must be a positive integer' });
+      }
+
       const product = await getAsync('SELECT * FROM products WHERE id = ?', [item.id]);
       if (!product) {
         return res.status(400).json({ success: false, error: `Product ${item.id} not found` });
       }
-      if (product.stock < item.quantity) {
+      if (product.stock < qty) {
         return res.status(400).json({ success: false, error: `Insufficient stock for ${product.title}` });
       }
-      subtotal += product.price * item.quantity;
+      subtotal += product.price * qty;
       validatedItems.push({
         id: product.id,
         title: product.title,
         price: product.price,
-        quantity: item.quantity
+        quantity: qty
       });
     }
 

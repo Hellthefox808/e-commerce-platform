@@ -19,6 +19,21 @@ const verifyToken = (req, res, next) => {
   }
 };
 
+const optionalAuth = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      req.user = decoded;
+    } catch (err) {
+      // Invalid/expired token: continue as unauthenticated guest
+      req.user = null;
+    }
+  }
+  next();
+};
+
 const requireRole = (...roles) => {
   return (req, res, next) => {
     if (!req.user || !roles.includes(req.user.role)) {
@@ -46,6 +61,8 @@ const logAudit = async (userId, userName, action, details, ipAddress = '127.0.0.
 module.exports = {
   JWT_SECRET,
   verifyToken,
+  optionalAuth,
   requireRole,
   logAudit
 };
+

@@ -10,10 +10,13 @@ export const Profile = () => {
   const [expandedOrder, setExpandedOrder] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Login form state for unauthenticated visitors
+  const [authMode, setAuthMode] = useState('login'); // 'login' | 'register'
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('customer@luxemarket.com');
   const [password, setPassword] = useState('customer123');
-  const [loginError, setLoginError] = useState(null);
+  const [role, setRole] = useState('CUSTOMER');
+  const [authError, setAuthError] = useState(null);
+  const [authSuccess, setAuthSuccess] = useState(null);
 
   useEffect(() => {
     if (user) {
@@ -26,54 +29,171 @@ export const Profile = () => {
     }
   }, [user]);
 
-  const handleLoginSubmit = async (e) => {
+  const handleAuthSubmit = async (e) => {
     e.preventDefault();
-    setLoginError(null);
+    setAuthError(null);
+    setAuthSuccess(null);
     try {
-      const res = await api.login(email, password);
-      if (!res.success) throw new Error(res.error || 'Login failed');
-      login(res.data.user, res.data.token);
+      if (authMode === 'login') {
+        const res = await api.login(email, password);
+        if (!res.success) throw new Error(res.error || 'Login failed');
+        login(res.data.user, res.data.token);
+      } else {
+        const res = await api.register(name, email, password, role);
+        if (!res.success) throw new Error(res.error || 'Registration failed');
+        setAuthSuccess('Account created successfully! Logging you in...');
+        setTimeout(() => {
+          login(res.data.user, res.data.token);
+        }, 800);
+      }
     } catch (err) {
-      setLoginError(err.message);
+      setAuthError(err.message);
     }
+  };
+
+  const setDemoUser = (demoEmail, demoPassword) => {
+    setAuthMode('login');
+    setEmail(demoEmail);
+    setPassword(demoPassword);
+    setAuthError(null);
   };
 
   if (!user) {
     return (
-      <div style={{ maxWidth: '440px', margin: '2rem auto' }} className="glass-panel">
+      <div style={{ maxWidth: '460px', margin: '2rem auto' }} className="glass-panel">
         <div style={{ padding: '2rem' }}>
-          <h2 style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: '0.5rem' }}>Sign In to LuxeCommerce</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-            Access saved addresses, order history, and live shipment telemetry.
+          
+          {/* Tab Switcher */}
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+            <button
+              type="button"
+              onClick={() => { setAuthMode('login'); setAuthError(null); }}
+              style={{
+                flex: 1,
+                padding: '0.65rem',
+                borderRadius: 'var(--radius-sm)',
+                background: authMode === 'login' ? 'var(--primary-gradient)' : 'transparent',
+                color: authMode === 'login' ? '#fff' : 'var(--text-muted)',
+                fontWeight: 700,
+                fontSize: '0.9rem'
+              }}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => { setAuthMode('register'); setAuthError(null); }}
+              style={{
+                flex: 1,
+                padding: '0.65rem',
+                borderRadius: 'var(--radius-sm)',
+                background: authMode === 'register' ? 'var(--primary-gradient)' : 'transparent',
+                color: authMode === 'register' ? '#fff' : 'var(--text-muted)',
+                fontWeight: 700,
+                fontSize: '0.9rem'
+              }}
+            >
+              Create Account
+            </button>
+          </div>
+
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem' }}>
+            {authMode === 'login' ? 'Welcome Back' : 'Join LuxeCommerce'}
+          </h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: '1.5rem' }}>
+            {authMode === 'login'
+              ? 'Access saved addresses, order history, and live shipment telemetry.'
+              : 'Create your luxury shopping account with instant checkout perks.'}
           </p>
 
-          {loginError && (
-            <div style={{ padding: '0.75rem', background: 'rgba(239,68,68,0.15)', color: '#ef4444', borderRadius: '6px', fontSize: '0.85rem', marginBottom: '1rem' }}>
-              {loginError}
+          {authError && (
+            <div style={{ padding: '0.75rem', background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', borderRadius: '6px', fontSize: '0.85rem', marginBottom: '1rem' }}>
+              {authError}
             </div>
           )}
 
-          <form onSubmit={handleLoginSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {authSuccess && (
+            <div style={{ padding: '0.75rem', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981', borderRadius: '6px', fontSize: '0.85rem', marginBottom: '1rem' }}>
+              {authSuccess}
+            </div>
+          )}
+
+          <form onSubmit={handleAuthSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {authMode === 'register' && (
+              <div>
+                <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>Full Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Jordan Hayes"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  style={{ width: '100%' }}
+                />
+              </div>
+            )}
+
             <div>
               <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>Email Address</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required style={{ width: '100%' }} />
+              <input
+                type="email"
+                placeholder="name@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                style={{ width: '100%' }}
+              />
             </div>
 
             <div>
               <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>Password</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required style={{ width: '100%' }} />
+              <input
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                style={{ width: '100%' }}
+              />
             </div>
 
+            {authMode === 'register' && (
+              <div>
+                <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>Account Role</label>
+                <select value={role} onChange={(e) => setRole(e.target.value)} style={{ width: '100%' }}>
+                  <option value="CUSTOMER">Customer (Shopper)</option>
+                  <option value="SELLER">Seller (Vendor)</option>
+                  <option value="ADMIN">System Administrator</option>
+                </select>
+              </div>
+            )}
+
             <button type="submit" className="btn-primary" style={{ justifyContent: 'center', padding: '0.85rem', fontSize: '1rem', marginTop: '0.5rem' }}>
-              Sign In
+              {authMode === 'login' ? 'Sign In' : 'Create Account'}
             </button>
           </form>
 
           {/* Quick Demo Credentials */}
           <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            <p style={{ fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-main)' }}>Demo Credentials:</p>
-            <p>Customer: <code>customer@luxemarket.com</code> / <code>customer123</code></p>
-            <p>Admin: <code>admin@luxemarket.com</code> / <code>admin123</code></p>
+            <p style={{ fontWeight: 700, marginBottom: '0.5rem', color: 'var(--text-main)' }}>Quick Demo Credentials:</p>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => setDemoUser('customer@luxemarket.com', 'customer123')}
+                className="badge badge-info"
+                style={{ cursor: 'pointer', padding: '0.35rem 0.65rem' }}
+              >
+                Customer: customer@luxemarket.com
+              </button>
+              <button
+                type="button"
+                onClick={() => setDemoUser('admin@luxemarket.com', 'admin123')}
+                className="badge badge-warning"
+                style={{ cursor: 'pointer', padding: '0.35rem 0.65rem' }}
+              >
+                Admin: admin@luxemarket.com
+              </button>
+            </div>
           </div>
         </div>
       </div>

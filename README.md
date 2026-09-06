@@ -181,37 +181,65 @@ All architectural specifications are synchronized in [`/docs`](file:///c:/Users/
 - **Node.js**: v18.0.0 or higher
 - **npm**: v9.0.0 or higher
 
-### Local Setup Instructions
+### Option A: Unified Monorepo Runner (Recommended for Dev)
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/Hellthefox808/Full-Stack-E-Commerce-Development.git
-cd Full-Stack-E-Commerce-Development
+# 1. Clone repository
+git clone https://github.com/Hellthefox808/e-commerce-platform.git
+cd e-commerce-platform
 
-# 2. Install & Seed Backend Server
+# 2. Install all dependencies (Frontend & Backend)
+npm run install:all
+
+# 3. Seed database
+npm run seed
+
+# 4. Start both Frontend & Backend concurrently
+npm run dev
+# Backend listening on http://localhost:5000
+# Frontend listening on http://localhost:3000
+```
+
+### Option B: Standalone Decoupled Execution
+
+Frontend and Backend can run completely independently on separate machines, containers, or terminal windows:
+
+#### Standalone Backend (`/backend`):
+```bash
 cd backend
 npm install
 npm run seed
-npm start
-# Backend listening on http://localhost:5000
+npm run dev
+# REST API listening on http://localhost:5000
+```
 
-# 3. Install & Launch Frontend Storefront (In a new terminal)
-cd ../frontend
+#### Standalone Frontend (`/frontend`):
+```bash
+cd frontend
 npm install
 npm run dev
-# Frontend listening on http://localhost:3000
+# Vite Storefront listening on http://localhost:3000
 ```
 
 ---
 
 ## 9. Configuration & Credentials
 
-### Environment Template ([`.env.example`](file:///c:/Users/ravir/Desktop/PROJECT/Project/p2/01-Full-Stack-Web/e-commerce-platform/.env.example))
+### Backend Configuration ([`backend/.env.example`](file:///c:/Users/ravir/Desktop/PROJECT/Project/p2/01-Full-Stack-Web/e-commerce-platform/backend/.env.example))
 ```env
 PORT=5000
+NODE_ENV=development
 JWT_SECRET=luxecommerce_super_secret_jwt_key_2026
-STRIPE_SECRET_KEY=sk_test_... (Optional)
-RAZORPAY_KEY_ID=rzp_test_... (Optional)
+CORS_ORIGIN=http://localhost:3000,http://127.0.0.1:3000
+STRIPE_SECRET_KEY=sk_test_... (Optional - sandbox fallback enabled)
+RAZORPAY_KEY_ID=rzp_test_... (Optional - sandbox fallback enabled)
+RAZORPAY_KEY_SECRET=...
+```
+
+### Frontend Configuration ([`frontend/.env.example`](file:///c:/Users/ravir/Desktop/PROJECT/Project/p2/01-Full-Stack-Web/e-commerce-platform/frontend/.env.example))
+```env
+# In development (Vite proxy mode), leave empty or set to http://localhost:5000:
+VITE_API_URL=http://localhost:5000
 ```
 
 ### Pre-seeded Demo Accounts
@@ -248,7 +276,7 @@ Full OpenAPI contract available at [`docs/10-api-contract.yaml`](file:///c:/User
 - **JWT Protection**: Short-lived access tokens + 7-day token rotation.
 - **RBAC Matrix**: Declarative middleware guards protecting sensitive endpoints (`requireRole('ADMIN', 'SUPER_ADMIN')`).
 - **OWASP Mitigations**: XSS defense headers via Helmet, rate limiting (150 req/15min), parameterized SQL queries preventing SQL/NoSQL injection.
-- **Audit Trails**: Immutable log entries storing user action, IP address, and payload timestamps.
+- **Audit Trails**: Immutable log records capturing user actions, IP addresses, and payload timestamps.
 
 ---
 
@@ -259,19 +287,43 @@ Full OpenAPI contract available at [`docs/10-api-contract.yaml`](file:///c:/User
 ---
 
 ## 14. Quality Assurance & Testing
-Run backend automated API verification tests:
+
+Run the automated backend integration test suite:
 ```bash
-node backend/test/test_suite.js
+npm test
+# Or standalone inside /backend:
+cd backend && npm test
 ```
-Verifies `/api/health`, `/api/v1/products` status code 200, array data contracts, and error handlers.
+Verifies:
+1. Health check `/api/health` status 200
+2. Root info `/` service descriptor
+3. Product catalog `/api/v1/products` status 200 & schemas
+4. Category-filtered catalog search
+5. User registration `/api/v1/auth/register` & JWT issuance
+6. User login `/api/v1/auth/login`
+7. Validation rejection of malformed credentials
+8. Authenticated order placement linking order to registered user
+9. Payment verification & state transition to `PAID`
+10. Order history retrieval under `/api/v1/orders/my-orders`
+
+To verify frontend production compilation:
+```bash
+npm run build
+# Or standalone inside /frontend:
+cd frontend && npm run build
+```
 
 ---
 
 ## 15. Docker Deployment
-Launch via Docker Compose:
+
+Launch both decoupled services via multi-container Docker Compose:
 ```bash
 docker-compose up --build
 ```
+- **Backend Container**: Node.js 20 Alpine on port `5000` with SQLite persistence in named volume `sqlite_data`.
+- **Frontend Container**: Nginx Alpine on port `3000` (serving optimized production Vite bundle with SPA routing).
+
 
 ---
 
@@ -297,7 +349,7 @@ Refer to [`CONTRIBUTING.md`](file:///c:/Users/ravir/Desktop/PROJECT/Project/p2/0
 - [x] Dual Stripe & Razorpay gateway adapters with sandbox simulator
 - [x] Admin Sales Analytics & Audit Log Inspector
 - [ ] Multi-vendor marketplace onboarding portal
-- [ ] AI-assisted product recommendation engine
+- [ ] Personalized product recommendation engine
 
 ---
 

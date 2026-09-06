@@ -13,10 +13,12 @@
 3. **Platform Administrators**: Business analytics oversight, KPI performance monitoring, role configuration, and audit trail inspection.
 
 ## 4. Architecture Summary
-- **Presentation**: React (Vite) SPA with HSL design tokens, dark/light theme switching, glassmorphism UI elements, slide-out cart drawer, and payment modal.
-- **Application & Service Layer**: Express REST API controllers handling JWT authentication, input validation, role checks, and payment provider orchestration.
+- **Decoupled Topology**: Complete separation of Frontend (`/frontend`) and Backend (`/backend`), each having independent dependencies, Dockerfiles, environment configurations, and release cycles.
+- **Presentation**: Standalone React 18 + Vite 5 SPA containerized via Nginx Alpine with HSL design tokens, dark/light theme switching, glassmorphism UI elements, slide-out cart drawer, error boundary resilience, and payment modal.
+- **Application & Service Layer**: Standalone Express REST API container handling JWT authentication, input validation, role checks, optional authentication on checkout, and payment provider orchestration.
 - **Domain Layer**: Core domain aggregates (`Order`, `Product`, `User`, `AuditLog`).
-- **Infrastructure Layer**: SQLite embedded database storage with automated seeding script, Promise query helpers, and Stripe/Razorpay SDK wrappers.
+- **Infrastructure Layer**: SQLite embedded database storage with automated seeding script, Promise query helpers, named volume persistence, and Stripe/Razorpay SDK wrappers.
+
 
 ## 5. Engineering & Scalability Goals
 - **API Performance Goal**: Maintain sub-300ms response time on catalog search and order placement.

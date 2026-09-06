@@ -1,0 +1,30 @@
+{
+  "name": "luxecommerce-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Enterprise Full-Stack E-Commerce Platform (Decoupled Frontend & Backend)",
+  "scripts": {
+    "dev": "node scripts/dev.js",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "test": "npm --prefix backend test",
+    "benchmark": "node scripts/benchmark.js",
+    "seed": "npm --prefix backend run seed",
+    "install:backend": "npm --prefix backend install",
+    "install:frontend": "npm --prefix frontend install",
+    "install:all": "npm --prefix backend install && npm --prefix frontend install"
+  },
+  "keywords": [
+    "ecommerce",
+    "clean-architecture",
+    "react",
+    "vite",
+    "express",
+    "docker",
+    "stripe",
+    "razorpay"
+  ],
+  "author": "Ravi Ranjan Singh",
+  "license": "MIT"
+}

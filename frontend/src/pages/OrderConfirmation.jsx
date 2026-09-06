@@ -7,16 +7,49 @@ import { api } from '../services/api';
 export const OrderConfirmation = () => {
   const { id } = useParams();
   const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    api.getOrderById(id).then((res) => {
-      if (res.success) setOrder(res.data);
-    });
+    setLoading(true);
+    setError(null);
+    api.getOrderById(id)
+      .then((res) => {
+        if (res.success && res.data) {
+          setOrder(res.data);
+        } else {
+          setError(res.error || 'Order could not be found.');
+        }
+      })
+      .catch((err) => {
+        setError(err.message || 'Failed to retrieve order invoice.');
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [id]);
 
-  if (!order) {
-    return <div style={{ padding: '4rem', textAlign: 'center' }}>Fetching order invoice details...</div>;
+  if (loading) {
+    return (
+      <div className="glass-panel" style={{ padding: '4rem', textAlign: 'center', maxWidth: '600px', margin: '2rem auto' }}>
+        <h3>Fetching order invoice details...</h3>
+        <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>Verifying payment confirmation telemetry...</p>
+      </div>
+    );
   }
+
+  if (error || !order) {
+    return (
+      <div className="glass-panel" style={{ padding: '4rem', textAlign: 'center', maxWidth: '600px', margin: '2rem auto' }}>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem' }}>Order Not Found</h2>
+        <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>{error || `Order ID "${id}" could not be retrieved.`}</p>
+        <Link to="/catalog" className="btn-primary" style={{ display: 'inline-flex' }}>
+          Back to Store Catalog
+        </Link>
+      </div>
+    );
+  }
+
 
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>

@@ -7,7 +7,7 @@ const orderController = require('../controllers/orderController');
 const paymentController = require('../controllers/paymentController');
 const adminController = require('../controllers/adminController');
 
-const { verifyToken, requireRole } = require('../middleware/auth');
+const { verifyToken, optionalAuth, requireRole } = require('../middleware/auth');
 
 // Auth Routes
 router.post('/auth/register', authController.register);
@@ -22,7 +22,7 @@ router.put('/products/:id', verifyToken, requireRole('SELLER', 'ADMIN', 'SUPER_A
 router.delete('/products/:id', verifyToken, requireRole('ADMIN', 'SUPER_ADMIN'), productController.deleteProduct);
 
 // Order Routes
-router.post('/orders/checkout', orderController.createOrder); // Allows guest or auth user
+router.post('/orders/checkout', optionalAuth, orderController.createOrder); // Allows guest or auth user
 router.get('/orders/my-orders', verifyToken, orderController.getUserOrders);
 router.get('/orders/:id', orderController.getOrderById);
 router.patch('/orders/:id/status', verifyToken, requireRole('SELLER', 'ADMIN', 'SUPER_ADMIN'), orderController.updateOrderStatus);
@@ -30,7 +30,8 @@ router.patch('/orders/:id/status', verifyToken, requireRole('SELLER', 'ADMIN', '
 // Payment Routes
 router.post('/payments/stripe/create-intent', paymentController.createStripeIntent);
 router.post('/payments/razorpay/create-order', paymentController.createRazorpayOrder);
-router.post('/payments/verify', paymentController.verifyPayment);
+router.post('/payments/verify', optionalAuth, paymentController.verifyPayment);
+
 
 // Admin & Analytics Routes
 router.get('/admin/analytics', verifyToken, requireRole('ADMIN', 'SUPER_ADMIN'), adminController.getAnalytics);

@@ -8,5 +8,5 @@
 
 ## Q4 2026: Advanced Scale & Features (Phase 2)
 - [ ] Multi-vendor marketplace onboarding workflow.
-- [ ] AI-driven product recommendations engine.
+- [ ] Smart personalized product recommendations engine.
 - [ ] Web Push & SMS notifications via Twilio & Firebase.

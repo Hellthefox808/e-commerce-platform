@@ -36,3 +36,17 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+# CodeLens Graph local index
+.codelens/
+
+# AI & Agent Assistant Files
+.agents/
+.claude/
+.cursor/
+.gemini/
+.jolli/
+.nex/
+.windsurfrules
+.mcp.json
+CLAUDE.md

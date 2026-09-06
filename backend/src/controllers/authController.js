@@ -10,7 +10,17 @@ exports.register = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Name, email, and password are required' });
     }
 
-    const existing = await getAsync('SELECT * FROM users WHERE email = ?', [email]);
+    const normalizedEmail = email.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(normalizedEmail)) {
+      return res.status(400).json({ success: false, error: 'Invalid email format' });
+    }
+
+    if (typeof password !== 'string' || password.length < 6) {
+      return res.status(400).json({ success: false, error: 'Password must be at least 6 characters long' });
+    }
+
+    const existing = await getAsync('SELECT * FROM users WHERE email = ?', [normalizedEmail]);
     if (existing) {
       return res.status(400).json({ success: false, error: 'User with this email already exists' });
     }
@@ -21,8 +31,9 @@ exports.register = async (req, res) => {
 
     await runAsync(
       'INSERT INTO users (id, email, password_hash, name, role) VALUES (?, ?, ?, ?, ?)',
-      [userId, email, password_hash, name, userRole]
+      [userId, normalizedEmail, password_hash, name.trim(), userRole]
     );
+
 
     const token = jwt.sign({ id: userId, email, name, role: userRole }, JWT_SECRET, { expiresIn: '7d' });
     await logAudit(userId, name, 'USER_REGISTER', `New user registered with role ${userRole}`, req.ip);
@@ -47,7 +58,9 @@ exports.login = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Email and password are required' });
     }
 
-    const user = await getAsync('SELECT * FROM users WHERE email = ?', [email]);
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await getAsync('SELECT * FROM users WHERE LOWER(email) = ?', [normalizedEmail]);
+
     if (!user) {
       return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }

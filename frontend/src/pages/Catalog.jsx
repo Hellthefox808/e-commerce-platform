@@ -19,6 +19,14 @@ export const Catalog = () => {
   const [sort, setSort] = useState('newest');
   const [showOnlyWishlist, setShowOnlyWishlist] = useState(searchParams.get('wishlist') === 'true');
 
+  // Synchronize state when URL searchParams update
+  useEffect(() => {
+    setSearch(searchParams.get('search') || '');
+    setSelectedCategory(searchParams.get('category') || 'All');
+    setShowOnlyWishlist(searchParams.get('wishlist') === 'true');
+  }, [searchParams]);
+
+
   useEffect(() => {
     setLoading(true);
     api.getProducts({
